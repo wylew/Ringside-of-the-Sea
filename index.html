@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Expressive Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="top-app-bar">
+        <div class="headline">My Blog</div>
+        <button class="icon-btn">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+    </header>
+
+    <main id="blog-feed" class="feed-container">
+        </main>
+
+    <button id="fab-add" class="fab">
+        <span class="material-symbols-outlined">add</span>
+    </button>
+
+    <dialog id="post-dialog" class="dialog">
+        <form id="post-form" method="dialog">
+            <h3>New Post</h3>
+            
+            <div class="input-group">
+                <label for="post-type">Post Type</label>
+                <select id="post-type" name="type">
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="quote">Quote</option>
+                    <option value="conversation">Conversation</option>
+                </select>
+            </div>
+
+            <div id="fields-container">
+                </div>
+
+            <div class="dialog-actions">
+                <button type="button" id="btn-cancel" class="btn-text">Cancel</button>
+                <button type="submit" id="btn-submit" class="btn-filled">Download Update</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="script.js"></script>
+</body>
+</html>
