@@ -6,20 +6,56 @@ const postTypeSelect = document.getElementById('post-type');
 const fieldsContainer = document.getElementById('fields-container');
 const cancelBtn = document.getElementById('btn-cancel');
 
-// Store posts in memory
-let currentPosts = [];
+// We hold the full raw text of the file so we can append to it later
+let rawMarkdownData = "";
 
-// --- 1. Initialize ---
+// --- 1. Fetch & Parse Logic ---
 async function initBlog() {
     try {
-        const response = await fetch('posts.json');
-        if (!response.ok) throw new Error('Failed to load posts.json');
-        currentPosts = await response.json();
-        renderPosts(currentPosts);
+        const response = await fetch('posts.md');
+        if (!response.ok) throw new Error('Failed to load posts.md');
+        
+        rawMarkdownData = await response.text();
+        const posts = parseMarkdownFile(rawMarkdownData);
+        renderPosts(posts);
     } catch (error) {
-        console.warn("No posts.json found. Starting with empty blog.");
-        currentPosts = [];
+        console.warn("No posts.md found. Starting with empty blog.");
+        rawMarkdownData = "";
     }
+}
+
+// Parses "---" separated blocks into Objects
+function parseMarkdownFile(mdContent) {
+    // Regex splits by lines containing ONLY "---"
+    const chunks = mdContent.split(/^---$/gm).map(c => c.trim()).filter(c => c.length > 0);
+    
+    return chunks.map(chunk => {
+        const lines = chunk.split('\n');
+        const post = { type: 'text', content: '' };
+        let isBody = false;
+        let bodyLines = [];
+
+        lines.forEach(line => {
+            // Empty line indicates end of Headers and start of Body
+            if (!isBody && line.trim() === '') {
+                isBody = true;
+                return;
+            }
+
+            if (!isBody) {
+                // Parse Headers (Type: value)
+                const match = line.match(/^([a-zA-Z]+):\s*(.*)$/);
+                if (match) {
+                    post[match[1].toLowerCase()] = match[2].trim();
+                }
+            } else {
+                bodyLines.push(line);
+            }
+        });
+
+        post.bodyRaw = bodyLines.join('\n').trim();
+        return post;
+    });
 }
 
 // --- 2. Render Logic ---
@@ -32,34 +68,45 @@ function renderPosts(posts) {
 
 function createCardHtml(post) {
     let contentHtml = '';
-    const dateStr = post.date || new Date().toLocaleDateString();
+    const dateStr = post.date || '';
 
-    switch(post.type) {
+    // Use Marked.js to turn Markdown into HTML
+    const bodyHtml = marked.parse(post.bodyRaw || '');
+
+    switch(post.type.toLowerCase()) {
         case 'text':
             contentHtml = `
                 <div class="card-padding">
                     <span class="timestamp">${dateStr}</span>
-                    <h2 class="text-title">${post.title}</h2>
-                    <p class="text-body">${post.content}</p>
+                    <h2 class="text-title">${post.title || 'Untitled'}</h2>
+                    <div class="text-body">${bodyHtml}</div>
                 </div>`;
             break;
         case 'image':
+            // For images, bodyRaw is just the URL
             contentHtml = `
                 <div class="card-image">
-                    <img src="${post.imageUrl}" alt="Post Image">
+                    <img src="${post.bodyRaw}" alt="Post Image">
                 </div>
                 <div class="image-caption">
                     <span class="timestamp">${dateStr}</span>
-                    ${post.caption}
+                    ${post.caption || ''}
                 </div>`;
             break;
         case 'conversation':
-            const msgs = post.messages || [];
-            const messagesHtml = msgs.map(msg => `
-                <div class="chat-bubble-row ${msg.side}">
-                    <span class="speaker-name">${msg.speaker}</span>
-                    <div class="chat-bubble ${msg.side}">${msg.text}</div>
-                </div>`).join('');
+            const lines = post.bodyRaw.split('\n');
+            const messagesHtml = lines.map((line, index) => {
+                const sep = line.indexOf(':');
+                if (sep === -1) return '';
+                const speaker = line.substring(0, sep).trim();
+                const text = line.substring(sep + 1).trim();
+                const side = (index % 2 === 0) ? 'left' : 'right';
+                return `<div class="chat-bubble-row ${side}">
+                            <span class="speaker-name">${speaker}</span>
+                            <div class="chat-bubble ${side}">${text}</div>
+                        </div>`;
+            }).join('');
+            
             contentHtml = `
                 <div class="card-padding">
                     <span class="timestamp">${dateStr}</span>
@@ -70,8 +117,8 @@ function createCardHtml(post) {
             contentHtml = `
                 <div class="card-padding">
                     <span class="material-symbols-outlined quote-icon">format_quote</span>
-                    <div class="quote-text">${post.text}</div>
-                    <div class="quote-author">— ${post.author}</div>
+                    <div class="quote-text">${post.bodyRaw}</div>
+                    <div class="quote-author">— ${post.author || 'Unknown'}</div>
                 </div>`;
             break;
     }
@@ -79,25 +126,17 @@ function createCardHtml(post) {
     return `<article class="card ${extraClass}">${contentHtml}</article>`;
 }
 
-// --- 3. Form & Download Logic ---
+// --- 3. Form & File Generation Logic ---
 
-// Open Dialog
-fabBtn.addEventListener('click', () => {
-    updateFormFields('text'); // Default to text
-    dialog.showModal();
-});
-
-// Close Dialog
+fabBtn.addEventListener('click', () => { updateFormFields('text'); dialog.showModal(); });
 cancelBtn.addEventListener('click', () => dialog.close());
-
-// Switch Fields
 postTypeSelect.addEventListener('change', (e) => updateFormFields(e.target.value));
 
 function updateFormFields(type) {
     let html = '';
     if (type === 'text') {
         html = `<div class="input-group"><label>Title</label><input type="text" name="title" required></div>
-                <div class="input-group"><label>Content</label><textarea name="content" required></textarea></div>`;
+                <div class="input-group"><label>Content (Markdown support)</label><textarea name="content" required></textarea></div>`;
     } else if (type === 'image') {
         html = `<div class="input-group"><label>Image URL</label><input type="url" name="imageUrl" required></div>
                 <div class="input-group"><label>Caption</label><input type="text" name="caption" required></div>`;
@@ -105,65 +144,50 @@ function updateFormFields(type) {
         html = `<div class="input-group"><label>Quote Text</label><textarea name="text" required></textarea></div>
                 <div class="input-group"><label>Author</label><input type="text" name="author" required></div>`;
     } else if (type === 'conversation') {
-        html = `<div class="input-group"><label>Script</label>
-                <textarea name="rawConversation" placeholder="Name: Message" style="height:150px;" required></textarea>
-                <div style="font-size:11px; margin-top:4px;">Format: "Name: Message" (new line for each)</div></div>`;
+        html = `<div class="input-group"><label>Script</label><textarea name="rawConversation" placeholder="Name: Message" style="height:150px;" required></textarea></div>`;
     }
     fieldsContainer.innerHTML = html;
 }
 
-// Handle "Download Update"
 postForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(postForm);
     const type = formData.get('type');
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     
-    const newPost = {
-        id: Date.now(),
-        type: type,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    };
+    // Create the New Block in Markdown format
+    let newBlock = `\n---\nType: ${type}\nDate: ${date}\n`;
 
     if (type === 'text') {
-        newPost.title = formData.get('title');
-        newPost.content = formData.get('content');
+        newBlock += `Title: ${formData.get('title')}\n\n${formData.get('content')}`;
     } else if (type === 'image') {
-        newPost.imageUrl = formData.get('imageUrl');
-        newPost.caption = formData.get('caption');
+        newBlock += `Caption: ${formData.get('caption')}\n\n${formData.get('imageUrl')}`;
     } else if (type === 'quote') {
-        newPost.text = formData.get('text');
-        newPost.author = formData.get('author');
+        newBlock += `Author: ${formData.get('author')}\n\n${formData.get('text')}`;
     } else if (type === 'conversation') {
-        const lines = formData.get('rawConversation').split('\n');
-        newPost.messages = lines.map((line, index) => {
-            const sep = line.indexOf(':');
-            if (sep === -1) return null;
-            return { 
-                speaker: line.substring(0, sep).trim(), 
-                text: line.substring(sep + 1).trim(), 
-                side: (index % 2 === 0) ? 'left' : 'right' 
-            };
-        }).filter(Boolean);
+        newBlock += `\n${formData.get('rawConversation')}`;
     }
 
-    // Add to top of list
-    currentPosts.unshift(newPost);
+    // Combine New Block + Existing Data (Newest on Top)
+    const updatedFileContent = newBlock + "\n" + rawMarkdownData;
 
     // Trigger Download
-    const jsonStr = JSON.stringify(currentPosts, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const blob = new Blob([updatedFileContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'posts.json';
+    link.download = 'posts.md';
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     dialog.close();
     postForm.reset();
+    
+    // Refresh view
+    rawMarkdownData = updatedFileContent;
+    renderPosts(parseMarkdownFile(updatedFileContent));
 });
 
 document.addEventListener('DOMContentLoaded', initBlog);
