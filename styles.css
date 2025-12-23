@@ -1,5 +1,5 @@
 :root {
-/* MD3 Colors (Purple Theme) */
+/* MD3 Colors (Purple Theme - can be overridden by JavaScript) */
 –md-sys-color-primary: #6750A4;
 –md-sys-color-on-primary: #FFFFFF;
 –md-sys-color-primary-container: #EADDFF;
@@ -335,6 +335,10 @@ max-height: 90vh;
 overflow-y: auto;
 }
 
+dialog.settings-dialog {
+max-width: 600px;
+}
+
 dialog::backdrop {
 background: rgba(0, 0, 0, 0.5);
 }
@@ -345,8 +349,33 @@ font-size: 24px;
 font-weight: 500;
 }
 
+dialog h4 {
+margin: 0 0 12px 0;
+font-size: 18px;
+font-weight: 500;
+}
+
 dialog p {
 line-height: 1.5;
+}
+
+/* Settings Sections */
+.settings-section {
+margin-bottom: 32px;
+padding-bottom: 24px;
+border-bottom: 1px solid var(–md-sys-color-outline);
+}
+
+.settings-section:last-of-type {
+border-bottom: none;
+margin-bottom: 16px;
+}
+
+.settings-section-title {
+display: flex;
+align-items: center;
+color: var(–md-sys-color-primary);
+margin-bottom: 12px;
 }
 
 /* Form Elements */
@@ -393,6 +422,42 @@ small {
 display: block;
 }
 
+/* Color Input Styling */
+.color-input-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+}
+
+.color-input-wrapper {
+display: flex;
+gap: 8px;
+align-items: center;
+}
+
+.color-picker {
+width: 48px;
+height: 40px;
+padding: 0;
+border: 1px solid var(–md-sys-color-outline);
+border-radius: 8px;
+cursor: pointer;
+flex-shrink: 0;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+border: none;
+border-radius: 6px;
+}
+
+.color-input-wrapper input[type=“text”] {
+flex: 1;
+}
+
 .dialog-actions {
 display: flex;
 justify-content: flex-end;
@@ -409,6 +474,8 @@ padding: 10px 20px;
 cursor: pointer;
 border-radius: 20px;
 transition: background-color 0.2s;
+display: inline-flex;
+align-items: center;
 }
 
 .btn-text:hover {
@@ -530,6 +597,14 @@ dialog h3 {
 
 .text-title {
     font-size: 20px;
+}
+
+.color-input-row {
+    grid-template-columns: 1fr;
+}
+
+.settings-section-title {
+    font-size: 16px;
 }
 ```
 
