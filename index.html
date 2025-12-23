@@ -1,64 +1,127 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A Material Design 3 blog powered by Markdown">
     <title>Ringside of the Sea | Campaign Notes</title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-    
-    <!-- Markdown Parser -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+
+```
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<!-- Markdown Parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Styles -->
+<link rel="stylesheet" href="styles.css">
+```
+
 </head>
 <body>
 
-    <header class="top-app-bar">
-        <div class="headline">Ringside of the Sea</div>
-        <button class="icon-btn" aria-label="Menu">
-            <span class="material-symbols-outlined">menu</span>
-        </button>
-    </header>
-
-    <main id="blog-feed" class="feed-container" role="main" aria-label="Blog posts">
-        <!-- Posts will be dynamically loaded here -->
-    </main>
-
-    <button id="fab-add" class="fab" aria-label="Create new post">
-        <span class="material-symbols-outlined">add</span>
+```
+<header class="top-app-bar">
+    <div class="headline">Ringside of the Sea</div>
+    <button id="settings-btn" class="icon-btn" aria-label="Settings">
+        <span class="material-symbols-outlined">settings</span>
     </button>
+</header>
 
-    <dialog id="post-dialog" class="dialog" aria-labelledby="dialog-title">
-        <form id="post-form" method="dialog">
-            <h3 id="dialog-title">New Post</h3>
-            
-            <div class="input-group">
-                <label for="post-type">Post Type</label>
-                <select id="post-type" name="type" aria-label="Select post type">
-                    <option value="text">Text</option>
-                    <option value="image">Image</option>
-                    <option value="quote">Quote</option>
-                    <option value="conversation">Conversation</option>
-                </select>
-            </div>
+<main id="blog-feed" class="feed-container" role="main" aria-label="Blog posts">
+    <!-- Posts will be dynamically loaded here -->
+</main>
 
-            <div id="fields-container">
-                <!-- Dynamic form fields will be inserted here -->
-            </div>
+<button id="fab-add" class="fab" aria-label="Create new post">
+    <span class="material-symbols-outlined">add</span>
+</button>
 
-            <div class="dialog-actions">
-                <button type="button" id="btn-cancel" class="btn-text">Cancel</button>
-                <button type="submit" id="btn-submit" class="btn-filled">Download Update</button>
-            </div>
-        </form>
-    </dialog>
+<!-- New Post Dialog -->
+<dialog id="post-dialog" class="dialog" aria-labelledby="dialog-title">
+    <form id="post-form" method="dialog">
+        <h3 id="dialog-title">New Post</h3>
+        
+        <div class="input-group">
+            <label for="post-type">Post Type</label>
+            <select id="post-type" name="type" aria-label="Select post type">
+                <option value="text">Text</option>
+                <option value="image">Image</option>
+                <option value="quote">Quote</option>
+                <option value="conversation">Conversation</option>
+            </select>
+        </div>
 
-    <!-- Scripts -->
-    <script src="script.js"></script>
+        <div id="fields-container">
+            <!-- Dynamic form fields will be inserted here -->
+        </div>
+
+        <div class="dialog-actions">
+            <button type="button" id="btn-cancel" class="btn-text">Cancel</button>
+            <button type="submit" id="btn-submit" class="btn-filled">Publish Post</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Settings Dialog -->
+<dialog id="settings-dialog" class="dialog" aria-labelledby="settings-title">
+    <form id="settings-form" method="dialog">
+        <h3 id="settings-title">GitHub Settings</h3>
+        
+        <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-bottom: 20px;">
+            Configure GitHub integration to automatically commit new posts.
+        </p>
+
+        <div class="input-group">
+            <label for="github-owner">Repository Owner</label>
+            <input type="text" id="github-owner" name="owner" placeholder="yourusername" required>
+            <small style="color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 4px;">
+                Your GitHub username or organization
+            </small>
+        </div>
+
+        <div class="input-group">
+            <label for="github-repo">Repository Name</label>
+            <input type="text" id="github-repo" name="repo" placeholder="Ringside-of-the-Sea" required>
+            <small style="color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 4px;">
+                The name of your repository
+            </small>
+        </div>
+
+        <div class="input-group">
+            <label for="github-branch">Branch</label>
+            <input type="text" id="github-branch" name="branch" placeholder="main" value="main">
+            <small style="color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 4px;">
+                Target branch (usually 'main' or 'gh-pages')
+            </small>
+        </div>
+
+        <div class="input-group">
+            <label for="github-token">Personal Access Token</label>
+            <input type="password" id="github-token" name="token" placeholder="ghp_xxxxxxxxxxxx" required>
+            <small style="color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 4px;">
+                Create at: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)<br>
+                Required permission: <strong>repo</strong> (Full control of private repositories)
+            </small>
+        </div>
+
+        <div style="background: rgba(186, 26, 26, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <p style="margin: 0; font-size: 12px; color: var(--md-sys-color-error);">
+                ⚠️ <strong>Security Note:</strong> Your token is stored locally in your browser. Never share it or commit it to your repository.
+            </p>
+        </div>
+
+        <div class="dialog-actions">
+            <button type="button" id="btn-cancel-settings" class="btn-text">Cancel</button>
+            <button type="submit" class="btn-filled">Save Settings</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Scripts -->
+<script src="script.js"></script>
+```
+
 </body>
 </html>
