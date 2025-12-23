@@ -3,35 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Material Blog</title>
+    <meta name="description" content="A Material Design 3 blog powered by Markdown">
+    <title>Ringside of the Sea | Campaign Notes</title>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    
+    <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <header class="top-app-bar">
-        <div class="headline">My Blog</div>
-        <button class="icon-btn">
+        <div class="headline">Ringside of the Sea</div>
+        <button class="icon-btn" aria-label="Menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
     </header>
 
-    <main id="blog-feed" class="feed-container">
-        </main>
+    <main id="blog-feed" class="feed-container" role="main" aria-label="Blog posts">
+        <!-- Posts will be dynamically loaded here -->
+    </main>
 
-    <button id="fab-add" class="fab">
+    <button id="fab-add" class="fab" aria-label="Create new post">
         <span class="material-symbols-outlined">add</span>
     </button>
 
-    <dialog id="post-dialog" class="dialog">
+    <dialog id="post-dialog" class="dialog" aria-labelledby="dialog-title">
         <form id="post-form" method="dialog">
-            <h3>New Post</h3>
+            <h3 id="dialog-title">New Post</h3>
             
             <div class="input-group">
                 <label for="post-type">Post Type</label>
-                <select id="post-type" name="type">
+                <select id="post-type" name="type" aria-label="Select post type">
                     <option value="text">Text</option>
                     <option value="image">Image</option>
                     <option value="quote">Quote</option>
@@ -39,7 +47,9 @@
                 </select>
             </div>
 
-            <div id="fields-container"></div>
+            <div id="fields-container">
+                <!-- Dynamic form fields will be inserted here -->
+            </div>
 
             <div class="dialog-actions">
                 <button type="button" id="btn-cancel" class="btn-text">Cancel</button>
@@ -48,6 +58,7 @@
         </form>
     </dialog>
 
+    <!-- Scripts -->
     <script src="script.js"></script>
 </body>
 </html>
