@@ -7,11 +7,6 @@ const sidebar = document.getElementById('sidebar');
 let sessions = {};
 let currentSessionNumber = null;
 
-// Configure marked to support emoji
-marked.use(markedEmoji.markedEmoji({
-    unicode: true
-}));
-
 // --- HELPER FUNCTIONS ---
 
 function escapeHtml(text) {
