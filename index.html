@@ -49,36 +49,10 @@
         </main>
     </div>
 
-    <!-- FAB Button -->
-    <button id="fab-add" class="fab" aria-label="Create new post" type="button">
-        <span class="material-symbols-outlined">add</span>
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open sessions menu" type="button">
+        <span class="material-symbols-outlined">menu</span>
     </button>
-
-    <!-- New Post Dialog -->
-    <dialog id="post-dialog" class="dialog" aria-labelledby="dialog-title">
-        <form id="post-form" method="dialog">
-            <h3 id="dialog-title">New Post</h3>
-            
-            <div class="input-group">
-                <label for="post-type">Post Type</label>
-                <select id="post-type" name="type" aria-label="Select post type">
-                    <option value="recap">Session Recap</option>
-                    <option value="text">Text Entry</option>
-                    <option value="quote">Quote</option>
-                    <option value="conversation">Conversation</option>
-                </select>
-            </div>
-
-            <div id="fields-container">
-                <!-- Dynamic form fields will be inserted here -->
-            </div>
-
-            <div class="dialog-actions">
-                <button type="button" id="btn-cancel" class="btn-text">Cancel</button>
-                <button type="submit" id="btn-submit" class="btn-filled">Create Post</button>
-            </div>
-        </form>
-    </dialog>
 
     <!-- Scripts -->
     <script src="script.js"></script>
