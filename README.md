@@ -7,7 +7,7 @@ A beautiful, Material Design 3 session diary for tabletop RPG campaigns. Track y
 ## ✨ Features
 
 - 📚 **Session-Based Organization** - Each session in its own markdown file
-- 🎨 **Customizable Theme** - Change colors to match your campaign
+- 🎨 **Customizable Theme** - Change colors to match your campaign (colors currently here:https://colorpeek.com/#a8c7fa,0a2540,0d47a1,d3e4fd,bac8db,243140,3a4857,d6e3f7,d0bcff,1f1635,5a4570,eaddff,0f1419,0f1419,34393e,0a0e13,171c21,1b2025,252a30,30353b,e1e3e6,c1c7ce,8b9198,41484d,ffb4ab,690005,93000a,ffdad6)
 - 🖼️ **Custom Masthead** - Add your own background image and title
 - 📝 **Multiple Post Types** - Recaps, conversations, quotes, and text entries
 - 🔄 **GitHub Integration** - Automatic commits to your repository
