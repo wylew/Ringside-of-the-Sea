@@ -394,7 +394,7 @@ body {
     line-height: 1.8;
     color: var(--md-sys-color-on-surface-variant);
     font-family: var(--font-post-body);
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .text-body p {
@@ -495,7 +495,7 @@ body {
 }
 
 .speaker-name {
-    font-size: 12px;
+    font-size: 16px;
     color: var(--md-sys-color-on-surface-variant);
     margin-bottom: 6px;
     margin-left: 16px;
@@ -516,7 +516,7 @@ body {
     line-height: 1.6;
     word-wrap: break-word;
     font-family: var(--font-conversation);
-    font-size: 15px;
+    font-size: 16px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
@@ -569,7 +569,7 @@ body {
     color: var(--md-sys-color-tertiary);
     margin-top: 28px;
     letter-spacing: 1.5px;
-    font-size: 14px;
+    font-size: 16px;
     font-family: var(--font-quote);
 }
 
