@@ -4,18 +4,18 @@ Title: The Shattered Isles
 
 Session 2 took us into dangerous waters as we pursued the Tide Callers to their base in the Shattered Isles.
 
-## Key Events
+## :star2: Key Events
 
 - **The Sea Chase**: An intense ship combat where Mira took the helm and pulled off impossible maneuvers
 - **The Kraken Attack**: A young kraken, apparently allied with the Tide Callers, ambushed us mid-journey
 - **Kaelen's Revelation**: During the kraken fight, Kaelen displayed mysterious water-controlling abilities they didn't know they had
 
-## NPCs Introduced
+## :disguised_face: NPCs Introduced
 
 - **Captain Seraphina Vale**: A rival pirate captain who offered to help us (for a price)
 - **The Kraken**: Not killed, but driven away. It will remember us.
 
-## Cliffhanger
+## :open_book: Cliffhanger
 
 We discovered the Tide Callers aren't just pirates—they're trying to awaken an ancient sea deity. And Kaelen might be the key to stopping them... or helping them.
 ---
