@@ -6,28 +6,11 @@ const postForm = document.getElementById('post-form');
 const postTypeSelect = document.getElementById('post-type');
 const fieldsContainer = document.getElementById('fields-container');
 const cancelBtn = document.getElementById('btn-cancel');
-const settingsBtn = document.getElementById('settings-btn');
-const settingsDialog = document.getElementById('settings-dialog');
-const settingsForm = document.getElementById('settings-form');
-const cancelSettingsBtn = document.getElementById('btn-cancel-settings');
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar = document.getElementById('sidebar');
 
-let sessions = {}; // Organized by session number
+let sessions = {};
 let currentSessionNumber = null;
-let sessionFileShas = {}; // Track SHA for each session file
-
-// Configuration
-let githubConfig = {
-    owner: localStorage.getItem('github_owner') || '',
-    repo: localStorage.getItem('github_repo') || '',
-    token: localStorage.getItem('github_token') || '',
-    branch: localStorage.getItem('github_branch') || 'main'
-};
-
-let mastheadConfig = {
-    title: localStorage.getItem('masthead_title') || 'Ringside of the Sea'
-};
 
 // --- HELPER FUNCTIONS ---
 
@@ -57,116 +40,6 @@ function showError(message) {
     errorMsg.textContent = message;
     document.body.appendChild(errorMsg);
     setTimeout(() => errorMsg.remove(), 4000);
-}
-
-function isGitHubConfigured() {
-    return githubConfig.owner && githubConfig.repo && githubConfig.token;
-}
-
-function applyMasthead() {
-    const mastheadTitle = document.querySelector('.masthead-title');
-    
-    if (mastheadConfig.title) {
-        mastheadTitle.textContent = mastheadConfig.title;
-        document.title = `${mastheadConfig.title} | Session Diary`;
-    }
-}
-
-// --- GITHUB API FUNCTIONS ---
-
-async function listSessionFiles() {
-    if (!isGitHubConfigured()) {
-        throw new Error('GitHub not configured');
-    }
-
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions?ref=${githubConfig.branch}`;
-    
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${githubConfig.token}`,
-            'Accept': 'application/vnd.github.v3+json'
-        }
-    });
-
-    if (!response.ok) {
-        if (response.status === 404) {
-            return [];
-        }
-        throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    const files = await response.json();
-    return files.filter(file => file.name.endsWith('.md') && file.name.startsWith('session-'));
-}
-
-async function fetchSessionFile(sessionNumber) {
-    if (!isGitHubConfigured()) {
-        // Try local file
-        const response = await fetch(`sessions/session-${sessionNumber}.md`);
-        if (response.ok) {
-            return { content: await response.text(), sha: null };
-        }
-        throw new Error(`Session ${sessionNumber} not found`);
-    }
-
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions/session-${sessionNumber}.md?ref=${githubConfig.branch}`;
-    
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${githubConfig.token}`,
-            'Accept': 'application/vnd.github.v3+json'
-        }
-    });
-
-    if (!response.ok) {
-        if (response.status === 404) {
-            return { content: '', sha: null };
-        }
-        throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    sessionFileShas[sessionNumber] = data.sha;
-    const content = atob(data.content);
-    return { content, sha: data.sha };
-}
-
-async function commitSessionFile(sessionNumber, content, message) {
-    if (!isGitHubConfigured()) {
-        throw new Error('GitHub not configured. Please configure in settings.');
-    }
-
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions/session-${sessionNumber}.md`;
-    const encodedContent = btoa(unescape(encodeURIComponent(content)));
-    
-    const body = {
-        message: message,
-        content: encodedContent,
-        branch: githubConfig.branch
-    };
-
-    if (sessionFileShas[sessionNumber]) {
-        body.sha = sessionFileShas[sessionNumber];
-    }
-
-    const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${githubConfig.token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `GitHub API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    sessionFileShas[sessionNumber] = data.content.sha;
-    return data;
 }
 
 // --- PARSE POSTS ---
@@ -222,36 +95,17 @@ async function loadAllSessions() {
     sessions = {};
     
     try {
-        if (isGitHubConfigured()) {
-            const files = await listSessionFiles();
-            
-            for (const file of files) {
-                const match = file.name.match(/session-(\d+)\.md/);
-                if (match) {
-                    const sessionNum = match[1];
-                    try {
-                        const result = await fetchSessionFile(sessionNum);
-                        const posts = parseMarkdownFile(result.content);
-                        sessions[sessionNum] = organizeSessionPosts(sessionNum, posts);
-                    } catch (error) {
-                        console.warn(`Failed to load session ${sessionNum}:`, error);
-                    }
+        // Try to load local session files (session-1.md through session-20.md)
+        for (let i = 1; i <= 20; i++) {
+            try {
+                const response = await fetch(`sessions/session-${i}.md`);
+                if (response.ok) {
+                    const content = await response.text();
+                    const posts = parseMarkdownFile(content);
+                    sessions[i] = organizeSessionPosts(i, posts);
                 }
-            }
-        } else {
-            // Try to load local session files
-            // Check for session-1.md through session-10.md
-            for (let i = 1; i <= 10; i++) {
-                try {
-                    const response = await fetch(`sessions/session-${i}.md`);
-                    if (response.ok) {
-                        const content = await response.text();
-                        const posts = parseMarkdownFile(content);
-                        sessions[i] = organizeSessionPosts(i, posts);
-                    }
-                } catch (error) {
-                    // File doesn't exist, skip
-                }
+            } catch (error) {
+                // File doesn't exist, skip
             }
         }
     } catch (error) {
@@ -331,6 +185,9 @@ function displaySession(sessionNum) {
     if (window.innerWidth <= 768) {
         sidebar.classList.remove('open');
     }
+    
+    // Scroll to top
+    document.querySelector('.content-area').scrollTop = 0;
 }
 
 function createPostCardHtml(post, isRecap) {
@@ -392,8 +249,6 @@ function createPostCardHtml(post, isRecap) {
 // --- INITIALIZATION ---
 
 async function initDiary() {
-    applyMasthead();
-    
     sessionList.innerHTML = '<div class="loading-sessions">Loading sessions...</div>';
     
     await loadAllSessions();
@@ -408,69 +263,14 @@ async function initDiary() {
     } else {
         sessionContent.innerHTML = `
             <div class="welcome-message">
-                <h2>Welcome to ${mastheadConfig.title}</h2>
+                <h2>Welcome to Ringside of the Sea</h2>
                 <p>No sessions found. Click the + button to create your first session!</p>
-                <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-top: 20px;">
+                <p style="font-size: 14px; opacity: 0.8; margin-top: 24px;">
                     Sessions are stored in separate markdown files in the <code>sessions/</code> folder.
                 </p>
             </div>
         `;
     }
-}
-
-// --- SETTINGS ---
-
-if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => {
-        document.getElementById('github-owner').value = githubConfig.owner;
-        document.getElementById('github-repo').value = githubConfig.repo;
-        document.getElementById('github-token').value = githubConfig.token;
-        document.getElementById('github-branch').value = githubConfig.branch;
-        
-        document.getElementById('masthead-title').value = mastheadConfig.title;
-        
-        settingsDialog.showModal();
-    });
-}
-
-if (cancelSettingsBtn) {
-    cancelSettingsBtn.addEventListener('click', () => {
-        settingsDialog.close();
-    });
-}
-
-if (settingsForm) {
-    settingsForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Save GitHub config
-        githubConfig.owner = document.getElementById('github-owner').value.trim();
-        githubConfig.repo = document.getElementById('github-repo').value.trim();
-        githubConfig.token = document.getElementById('github-token').value.trim();
-        githubConfig.branch = document.getElementById('github-branch').value.trim() || 'main';
-        
-        localStorage.setItem('github_owner', githubConfig.owner);
-        localStorage.setItem('github_repo', githubConfig.repo);
-        localStorage.setItem('github_token', githubConfig.token);
-        localStorage.setItem('github_branch', githubConfig.branch);
-        
-        // Save masthead config
-        const mastheadTitle = document.getElementById('masthead-title').value.trim();
-        
-        if (mastheadTitle) {
-            mastheadConfig.title = mastheadTitle;
-            localStorage.setItem('masthead_title', mastheadTitle);
-        }
-        
-        applyMasthead();
-        
-        settingsDialog.close();
-        showSuccess('Settings saved successfully!');
-        
-        if (isGitHubConfigured()) {
-            initDiary();
-        }
-    });
 }
 
 // --- NEW POST FORM ---
@@ -543,8 +343,10 @@ postForm.addEventListener('submit', async (e) => {
         // Load existing session file
         let existingContent = '';
         try {
-            const result = await fetchSessionFile(sessionNum);
-            existingContent = result.content;
+            const response = await fetch(`sessions/session-${sessionNum}.md`);
+            if (response.ok) {
+                existingContent = await response.text();
+            }
         } catch (error) {
             // New session file
             console.log(`Creating new session file for session ${sessionNum}`);
@@ -566,31 +368,22 @@ postForm.addEventListener('submit', async (e) => {
             ? newBlock + "\n---\n" + existingContent 
             : newBlock;
 
-        if (isGitHubConfigured()) {
-            await commitSessionFile(sessionNum, updatedContent, `Add new ${type} to session ${sessionNum}`);
-            showSuccess('Post published to GitHub! 🎉');
-        } else {
-            // Download the session file
-            const blob = new Blob([updatedContent], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `session-${sessionNum}.md`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showSuccess(`Session ${sessionNum} file downloaded! Upload to sessions/ folder.`);
-        }
+        // Download the session file
+        const blob = new Blob([updatedContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `session-${sessionNum}.md`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
         
-        // Reload sessions
-        await loadAllSessions();
-        renderSessionList();
-        displaySession(sessionNum);
+        showSuccess(`Session ${sessionNum} file downloaded! Upload to sessions/ folder and refresh.`);
         
     } catch (error) {
-        console.error('Error publishing post:', error);
-        showError(`Failed to publish: ${error.message}`);
+        console.error('Error creating post:', error);
+        showError(`Failed to create post: ${error.message}`);
         dialog.showModal();
     }
 });
@@ -611,9 +404,6 @@ document.addEventListener('keydown', (e) => {
             dialog.close();
             postForm.reset();
         }
-        if (settingsDialog && settingsDialog.open) {
-            settingsDialog.close();
-        }
         if (sidebar.classList.contains('open')) {
             sidebar.classList.remove('open');
         }
@@ -623,13 +413,6 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         updateFormFields('recap');
         dialog.showModal();
-    }
-    
-    if ((e.metaKey || e.ctrlKey) && e.key === ',') {
-        e.preventDefault();
-        if (settingsBtn) {
-            settingsBtn.click();
-        }
     }
 });
 
