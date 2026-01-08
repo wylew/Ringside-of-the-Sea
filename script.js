@@ -1,4 +1,5 @@
-const feedContainer = document.getElementById('blog-feed');
+const sessionList = document.getElementById('session-list');
+const sessionContent = document.getElementById('session-content');
 const fabBtn = document.getElementById('fab-add');
 const dialog = document.getElementById('post-dialog');
 const postForm = document.getElementById('post-form');
@@ -9,12 +10,14 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsDialog = document.getElementById('settings-dialog');
 const settingsForm = document.getElementById('settings-form');
 const cancelSettingsBtn = document.getElementById('btn-cancel-settings');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebar = document.getElementById('sidebar');
 
-// We hold the full raw text of the file so we can append to it later
-let rawMarkdownData = "";
-let currentFileSha = null; // Needed for GitHub API updates
+let sessions = {}; // Organized by session number
+let currentSessionNumber = null;
+let sessionFileShas = {}; // Track SHA for each session file
 
-// GitHub Configuration (loaded from localStorage)
+// Configuration
 let githubConfig = {
     owner: localStorage.getItem('github_owner') || '',
     repo: localStorage.getItem('github_repo') || '',
@@ -22,13 +25,17 @@ let githubConfig = {
     branch: localStorage.getItem('github_branch') || 'main'
 };
 
-// Theme Configuration (loaded from localStorage)
 let themeConfig = {
     primary: localStorage.getItem('theme_primary') || '#6750A4',
     secondary: localStorage.getItem('theme_secondary') || '#625B71',
     tertiary: localStorage.getItem('theme_tertiary') || '#7D5260',
     surface: localStorage.getItem('theme_surface') || '#FEF7FF',
     surfaceContainer: localStorage.getItem('theme_surface_container') || '#F3EDF7'
+};
+
+let mastheadConfig = {
+    image: localStorage.getItem('masthead_image') || 'https://images.unsplash.com/photo-1519681393784-d120267933ba',
+    title: localStorage.getItem('masthead_title') || 'Ringside of the Sea'
 };
 
 // --- HELPER FUNCTIONS ---
@@ -45,37 +52,12 @@ function formatDate(date = new Date()) {
     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-function showLoading() {
-    feedContainer.innerHTML = `
-        <div class="card card-padding" style="text-align: center;">
-            <p>Loading posts...</p>
-        </div>`;
-}
-
-function showEmptyState() {
-    feedContainer.innerHTML = `
-        <div class="card card-padding" style="text-align: center;">
-            <h2 style="margin-top: 0;">Welcome to Your Blog!</h2>
-            <p style="color: var(--md-sys-color-on-surface-variant);">
-                No posts yet. Click the <strong>+</strong> button to create your first post.
-            </p>
-            ${!isGitHubConfigured() ? `
-            <p style="color: var(--md-sys-color-primary); margin-top: 16px;">
-                💡 Click the ⚙️ settings icon to set up automatic GitHub publishing!
-            </p>
-            ` : ''}
-        </div>`;
-}
-
 function showSuccess(message) {
     const successMsg = document.createElement('div');
     successMsg.className = 'success-toast';
     successMsg.textContent = message;
     document.body.appendChild(successMsg);
-    
-    setTimeout(() => {
-        successMsg.remove();
-    }, 3000);
+    setTimeout(() => successMsg.remove(), 3000);
 }
 
 function showError(message) {
@@ -83,10 +65,7 @@ function showError(message) {
     errorMsg.className = 'error-toast';
     errorMsg.textContent = message;
     document.body.appendChild(errorMsg);
-    
-    setTimeout(() => {
-        errorMsg.remove();
-    }, 4000);
+    setTimeout(() => errorMsg.remove(), 4000);
 }
 
 function isGitHubConfigured() {
@@ -97,44 +76,44 @@ function isValidHexColor(hex) {
     return /^#[0-9A-Fa-f]{6}$/.test(hex);
 }
 
+function lightenColor(hex, percent) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    
+    const newR = Math.round(r + (255 - r) * (percent / 100));
+    const newG = Math.round(g + (255 - g) * (percent / 100));
+    const newB = Math.round(b + (255 - b) * (percent / 100));
+    
+    return '#' + [newR, newG, newB].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
 function applyTheme() {
     const root = document.documentElement;
-    
-    // Apply primary color
     root.style.setProperty('--md-sys-color-primary', themeConfig.primary);
-    
-    // Apply secondary color
     root.style.setProperty('--md-sys-color-secondary', themeConfig.secondary);
-    
-    // Apply tertiary color
     root.style.setProperty('--md-sys-color-tertiary', themeConfig.tertiary);
-    
-    // Apply surface colors
     root.style.setProperty('--md-sys-color-surface', themeConfig.surface);
     root.style.setProperty('--md-sys-color-surface-container', themeConfig.surfaceContainer);
-    
-    // Auto-generate container colors (lighter versions)
     root.style.setProperty('--md-sys-color-primary-container', lightenColor(themeConfig.primary, 40));
     root.style.setProperty('--md-sys-color-secondary-container', lightenColor(themeConfig.secondary, 40));
     root.style.setProperty('--md-sys-color-tertiary-container', lightenColor(themeConfig.tertiary, 40));
 }
 
-function lightenColor(hex, percent) {
-    // Convert hex to RGB
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+function applyMasthead() {
+    const masthead = document.querySelector('.masthead');
+    const mastheadTitle = document.querySelector('.masthead-title');
     
-    // Lighten by moving towards white
-    const newR = Math.round(r + (255 - r) * (percent / 100));
-    const newG = Math.round(g + (255 - g) * (percent / 100));
-    const newB = Math.round(b + (255 - b) * (percent / 100));
-    
-    // Convert back to hex
-    return '#' + [newR, newG, newB].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
+    if (mastheadConfig.image) {
+        masthead.style.backgroundImage = `url('${mastheadConfig.image}')`;
+    }
+    if (mastheadConfig.title) {
+        mastheadTitle.textContent = mastheadConfig.title;
+        document.title = `${mastheadConfig.title} | Session Diary`;
+    }
 }
 
 function resetTheme() {
@@ -146,7 +125,6 @@ function resetTheme() {
         surfaceContainer: '#F3EDF7'
     };
     
-    // Clear from localStorage
     localStorage.removeItem('theme_primary');
     localStorage.removeItem('theme_secondary');
     localStorage.removeItem('theme_tertiary');
@@ -155,7 +133,6 @@ function resetTheme() {
     
     applyTheme();
     
-    // Update form fields
     document.getElementById('theme-primary').value = themeConfig.primary;
     document.getElementById('theme-secondary').value = themeConfig.secondary;
     document.getElementById('theme-tertiary').value = themeConfig.tertiary;
@@ -167,12 +144,12 @@ function resetTheme() {
 
 // --- GITHUB API FUNCTIONS ---
 
-async function fetchFromGitHub() {
+async function listSessionFiles() {
     if (!isGitHubConfigured()) {
         throw new Error('GitHub not configured');
     }
 
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/posts.md?ref=${githubConfig.branch}`;
+    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions?ref=${githubConfig.branch}`;
     
     const response = await fetch(url, {
         headers: {
@@ -183,28 +160,53 @@ async function fetchFromGitHub() {
 
     if (!response.ok) {
         if (response.status === 404) {
-            // File doesn't exist yet, that's okay
+            return [];
+        }
+        throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    const files = await response.json();
+    return files.filter(file => file.name.endsWith('.md') && file.name.startsWith('session-'));
+}
+
+async function fetchSessionFile(sessionNumber) {
+    if (!isGitHubConfigured()) {
+        // Try local file
+        const response = await fetch(`sessions/session-${sessionNumber}.md`);
+        if (response.ok) {
+            return { content: await response.text(), sha: null };
+        }
+        throw new Error(`Session ${sessionNumber} not found`);
+    }
+
+    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions/session-${sessionNumber}.md?ref=${githubConfig.branch}`;
+    
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${githubConfig.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
             return { content: '', sha: null };
         }
         throw new Error(`GitHub API error: ${response.status}`);
     }
 
     const data = await response.json();
-    currentFileSha = data.sha;
-    
-    // Decode base64 content
+    sessionFileShas[sessionNumber] = data.sha;
     const content = atob(data.content);
     return { content, sha: data.sha };
 }
 
-async function commitToGitHub(content, message) {
+async function commitSessionFile(sessionNumber, content, message) {
     if (!isGitHubConfigured()) {
         throw new Error('GitHub not configured. Please configure in settings.');
     }
 
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/posts.md`;
-    
-    // Encode content to base64
+    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/sessions/session-${sessionNumber}.md`;
     const encodedContent = btoa(unescape(encodeURIComponent(content)));
     
     const body = {
@@ -213,9 +215,8 @@ async function commitToGitHub(content, message) {
         branch: githubConfig.branch
     };
 
-    // Include SHA if file exists (for updates)
-    if (currentFileSha) {
-        body.sha = currentFileSha;
+    if (sessionFileShas[sessionNumber]) {
+        body.sha = sessionFileShas[sessionNumber];
     }
 
     const response = await fetch(url, {
@@ -234,58 +235,17 @@ async function commitToGitHub(content, message) {
     }
 
     const data = await response.json();
-    currentFileSha = data.content.sha;
+    sessionFileShas[sessionNumber] = data.content.sha;
     return data;
 }
 
-// --- 1. Fetch & Parse Logic ---
+// --- PARSE POSTS ---
 
-async function initBlog() {
-    showLoading();
-    
-    // Apply saved theme
-    applyTheme();
-    
-    try {
-        let content;
-        
-        if (isGitHubConfigured()) {
-            // Try to load from GitHub
-            const result = await fetchFromGitHub();
-            content = result.content;
-            rawMarkdownData = content;
-        } else {
-            // Fallback to local posts.md
-            const response = await fetch('posts.md');
-            if (response.ok) {
-                content = await response.text();
-                rawMarkdownData = content;
-            } else {
-                throw new Error('No posts found');
-            }
-        }
-        
-        const posts = parseMarkdownFile(content);
-        
-        if (posts.length === 0) {
-            showEmptyState();
-        } else {
-            renderPosts(posts);
-        }
-    } catch (error) {
-        console.warn("No posts found. Starting with empty blog.", error);
-        rawMarkdownData = "";
-        showEmptyState();
-    }
-}
-
-// Parses "---" separated blocks into Objects
 function parseMarkdownFile(mdContent) {
     if (!mdContent || mdContent.trim() === '') {
         return [];
     }
     
-    // More robust splitting - handles trailing spaces and different line endings
     const chunks = mdContent
         .split(/\r?\n---\r?\n/)
         .map(c => c.trim())
@@ -298,14 +258,12 @@ function parseMarkdownFile(mdContent) {
         let bodyLines = [];
 
         lines.forEach(line => {
-            // Empty line indicates end of Headers and start of Body
             if (!isBody && line.trim() === '') {
                 isBody = true;
                 return;
             }
 
             if (!isBody) {
-                // Parse Headers (Type: value)
                 const match = line.match(/^([a-zA-Z]+):\s*(.*)$/);
                 if (match) {
                     post[match[1].toLowerCase()] = match[2].trim();
@@ -320,41 +278,145 @@ function parseMarkdownFile(mdContent) {
     });
 }
 
-// --- 2. Render Logic ---
+function organizeSessionPosts(sessionNumber, posts) {
+    return {
+        number: sessionNumber,
+        date: posts.length > 0 ? posts[0].date : formatDate(),
+        posts: posts
+    };
+}
 
-function renderPosts(posts) {
-    feedContainer.innerHTML = '';
-    posts.forEach(post => {
-        feedContainer.insertAdjacentHTML('beforeend', createCardHtml(post));
+// --- LOAD SESSIONS ---
+
+async function loadAllSessions() {
+    sessions = {};
+    
+    try {
+        if (isGitHubConfigured()) {
+            const files = await listSessionFiles();
+            
+            for (const file of files) {
+                const match = file.name.match(/session-(\d+)\.md/);
+                if (match) {
+                    const sessionNum = match[1];
+                    try {
+                        const result = await fetchSessionFile(sessionNum);
+                        const posts = parseMarkdownFile(result.content);
+                        sessions[sessionNum] = organizeSessionPosts(sessionNum, posts);
+                    } catch (error) {
+                        console.warn(`Failed to load session ${sessionNum}:`, error);
+                    }
+                }
+            }
+        } else {
+            // Try to load local session files
+            // Check for session-1.md through session-10.md
+            for (let i = 1; i <= 10; i++) {
+                try {
+                    const response = await fetch(`sessions/session-${i}.md`);
+                    if (response.ok) {
+                        const content = await response.text();
+                        const posts = parseMarkdownFile(content);
+                        sessions[i] = organizeSessionPosts(i, posts);
+                    }
+                } catch (error) {
+                    // File doesn't exist, skip
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading sessions:', error);
+    }
+}
+
+// --- RENDER FUNCTIONS ---
+
+function renderSessionList() {
+    const sortedSessions = Object.keys(sessions)
+        .sort((a, b) => parseInt(b) - parseInt(a));
+    
+    if (sortedSessions.length === 0) {
+        sessionList.innerHTML = '<div class="loading-sessions">No sessions found. Create your first post!</div>';
+        return;
+    }
+    
+    sessionList.innerHTML = sortedSessions.map(sessionNum => {
+        const session = sessions[sessionNum];
+        const postCount = session.posts.length;
+        const recapCount = session.posts.filter(p => p.type === 'recap').length;
+        
+        return `
+            <div class="session-item" data-session="${sessionNum}">
+                <div class="session-item-number">Session ${sessionNum}</div>
+                <div class="session-item-date">${session.date}</div>
+                <div class="session-item-count">${postCount} ${postCount === 1 ? 'entry' : 'entries'}${recapCount > 0 ? ` • ${recapCount} recap` : ''}</div>
+            </div>
+        `;
+    }).join('');
+    
+    // Add click handlers
+    document.querySelectorAll('.session-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const sessionNum = item.dataset.session;
+            displaySession(sessionNum);
+        });
     });
 }
 
-function createCardHtml(post) {
-    let contentHtml = '';
-    const dateStr = post.date || formatDate();
+function displaySession(sessionNum) {
+    currentSessionNumber = sessionNum;
+    const session = sessions[sessionNum];
+    
+    if (!session) return;
+    
+    // Update active state
+    document.querySelectorAll('.session-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.session === sessionNum);
+    });
+    
+    // Separate recap and other posts
+    const recapPosts = session.posts.filter(p => p.type === 'recap');
+    const otherPosts = session.posts.filter(p => p.type !== 'recap');
+    
+    let html = `
+        <div class="session-header">
+            <h1 class="session-header-title">Session ${sessionNum}</h1>
+            <div class="session-header-date">${session.date}</div>
+        </div>
+    `;
+    
+    // Render recap first
+    recapPosts.forEach(post => {
+        html += createPostCardHtml(post, true);
+    });
+    
+    // Render other posts
+    otherPosts.forEach(post => {
+        html += createPostCardHtml(post, false);
+    });
+    
+    sessionContent.innerHTML = html;
+    
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+    }
+}
 
-    // Use Marked.js to turn Markdown into HTML
+function createPostCardHtml(post, isRecap) {
     const bodyHtml = marked.parse(post.bodyRaw || '');
-
+    let contentHtml = '';
+    let extraClass = isRecap ? 'recap-card' : '';
+    
     switch(post.type.toLowerCase()) {
+        case 'recap':
         case 'text':
+            extraClass += post.type === 'recap' ? ' recap-card' : '';
             contentHtml = `
                 <div class="card-padding">
-                    <span class="timestamp">${dateStr}</span>
+                    ${post.type === 'recap' ? '<span class="post-type-label">Session Recap</span>' : ''}
                     <h2 class="text-title">${escapeHtml(post.title || 'Untitled')}</h2>
                     <div class="text-body">${bodyHtml}</div>
-                </div>`;
-            break;
-            
-        case 'image':
-            // For images, bodyRaw is just the URL
-            contentHtml = `
-                <div class="card-image">
-                    <img src="${escapeHtml(post.bodyRaw)}" alt="Post Image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EImage not found%3C/text%3E%3C/svg%3E'">
-                </div>
-                <div class="image-caption">
-                    <span class="timestamp">${dateStr}</span>
-                    <p>${escapeHtml(post.caption || '')}</p>
                 </div>`;
             break;
             
@@ -378,55 +440,75 @@ function createCardHtml(post) {
             
             contentHtml = `
                 <div class="card-padding">
-                    <span class="timestamp">${dateStr}</span>
+                    <span class="post-type-label">Conversation</span>
                     <div class="chat-container">${messagesHtml}</div>
                 </div>`;
             break;
             
         case 'quote':
+            extraClass += ' quote-card';
             contentHtml = `
                 <div class="card-padding">
-                    <span class="timestamp">${dateStr}</span>
+                    <span class="post-type-label">Quote</span>
                     <div class="quote-text">"${escapeHtml(post.bodyRaw)}"</div>
                     <div class="quote-author">— ${escapeHtml(post.author || 'Unknown')}</div>
                 </div>`;
             break;
-            
-        default:
-            contentHtml = `
-                <div class="card-padding">
-                    <span class="timestamp">${dateStr}</span>
-                    <p>Unknown post type: ${escapeHtml(post.type)}</p>
-                </div>`;
     }
     
-    const extraClass = post.type === 'quote' ? 'quote-container' : '';
-    return `<article class="card ${extraClass}">${contentHtml}</article>`;
+    return `<article class="post-card ${extraClass}">${contentHtml}</article>`;
 }
 
-// --- 3. Settings Dialog Logic ---
+// --- INITIALIZATION ---
+
+async function initDiary() {
+    applyTheme();
+    applyMasthead();
+    
+    sessionList.innerHTML = '<div class="loading-sessions">Loading sessions...</div>';
+    
+    await loadAllSessions();
+    renderSessionList();
+    
+    // Auto-select first session
+    const sortedSessions = Object.keys(sessions)
+        .sort((a, b) => parseInt(b) - parseInt(a));
+    
+    if (sortedSessions.length > 0) {
+        displaySession(sortedSessions[0]);
+    } else {
+        sessionContent.innerHTML = `
+            <div class="welcome-message">
+                <h2>Welcome to ${mastheadConfig.title}</h2>
+                <p>No sessions found. Click the + button to create your first session!</p>
+                <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-top: 20px;">
+                    Sessions are stored in separate markdown files in the <code>sessions/</code> folder.
+                </p>
+            </div>
+        `;
+    }
+}
+
+// --- SETTINGS ---
 
 if (settingsBtn) {
     settingsBtn.addEventListener('click', () => {
-        console.log('Settings button clicked');
-        
-        // Pre-fill GitHub form with current values
         document.getElementById('github-owner').value = githubConfig.owner;
         document.getElementById('github-repo').value = githubConfig.repo;
         document.getElementById('github-token').value = githubConfig.token;
         document.getElementById('github-branch').value = githubConfig.branch;
         
-        // Pre-fill theme form with current values
         document.getElementById('theme-primary').value = themeConfig.primary;
         document.getElementById('theme-secondary').value = themeConfig.secondary;
         document.getElementById('theme-tertiary').value = themeConfig.tertiary;
         document.getElementById('theme-surface').value = themeConfig.surface;
         document.getElementById('theme-surface-container').value = themeConfig.surfaceContainer;
         
+        document.getElementById('masthead-image').value = mastheadConfig.image;
+        document.getElementById('masthead-title').value = mastheadConfig.title;
+        
         settingsDialog.showModal();
     });
-} else {
-    console.error('Settings button not found!');
 }
 
 if (cancelSettingsBtn) {
@@ -435,7 +517,6 @@ if (cancelSettingsBtn) {
     });
 }
 
-// Reset theme button
 const resetThemeBtn = document.getElementById('btn-reset-theme');
 if (resetThemeBtn) {
     resetThemeBtn.addEventListener('click', (e) => {
@@ -448,7 +529,7 @@ if (settingsForm) {
     settingsForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Save GitHub config to localStorage
+        // Save GitHub config
         githubConfig.owner = document.getElementById('github-owner').value.trim();
         githubConfig.repo = document.getElementById('github-repo').value.trim();
         githubConfig.token = document.getElementById('github-token').value.trim();
@@ -459,72 +540,59 @@ if (settingsForm) {
         localStorage.setItem('github_token', githubConfig.token);
         localStorage.setItem('github_branch', githubConfig.branch);
         
-        // Save theme config to localStorage
-        const primaryInput = document.getElementById('theme-primary').value.trim();
-        const secondaryInput = document.getElementById('theme-secondary').value.trim();
-        const tertiaryInput = document.getElementById('theme-tertiary').value.trim();
-        const surfaceInput = document.getElementById('theme-surface').value.trim();
-        const surfaceContainerInput = document.getElementById('theme-surface-container').value.trim();
-        
-        // Validate hex colors
-        const colors = [
-            { name: 'Primary', value: primaryInput },
-            { name: 'Secondary', value: secondaryInput },
-            { name: 'Tertiary', value: tertiaryInput },
-            { name: 'Surface', value: surfaceInput },
-            { name: 'Surface Container', value: surfaceContainerInput }
-        ];
-        
+        // Save theme config
+        const colors = ['primary', 'secondary', 'tertiary', 'surface', 'surface-container'];
         let allValid = true;
-        for (const color of colors) {
-            if (color.value && !isValidHexColor(color.value)) {
-                showError(`${color.name} color must be a valid hex code (e.g., #6750A4)`);
+        
+        colors.forEach(colorName => {
+            const input = document.getElementById(`theme-${colorName}`).value.trim();
+            if (input && !isValidHexColor(input)) {
+                showError(`${colorName} color must be a valid hex code`);
                 allValid = false;
-                break;
             }
-        }
+        });
         
         if (!allValid) return;
         
-        // Apply theme colors
-        if (primaryInput) {
-            themeConfig.primary = primaryInput;
-            localStorage.setItem('theme_primary', primaryInput);
+        colors.forEach(colorName => {
+            const input = document.getElementById(`theme-${colorName}`).value.trim();
+            if (input) {
+                const configKey = colorName.replace('-', '');
+                themeConfig[configKey] = input;
+                localStorage.setItem(`theme_${colorName.replace('-', '_')}`, input);
+            }
+        });
+        
+        // Save masthead config
+        const mastheadImage = document.getElementById('masthead-image').value.trim();
+        const mastheadTitle = document.getElementById('masthead-title').value.trim();
+        
+        if (mastheadImage) {
+            mastheadConfig.image = mastheadImage;
+            localStorage.setItem('masthead_image', mastheadImage);
         }
-        if (secondaryInput) {
-            themeConfig.secondary = secondaryInput;
-            localStorage.setItem('theme_secondary', secondaryInput);
-        }
-        if (tertiaryInput) {
-            themeConfig.tertiary = tertiaryInput;
-            localStorage.setItem('theme_tertiary', tertiaryInput);
-        }
-        if (surfaceInput) {
-            themeConfig.surface = surfaceInput;
-            localStorage.setItem('theme_surface', surfaceInput);
-        }
-        if (surfaceContainerInput) {
-            themeConfig.surfaceContainer = surfaceContainerInput;
-            localStorage.setItem('theme_surface_container', surfaceContainerInput);
+        if (mastheadTitle) {
+            mastheadConfig.title = mastheadTitle;
+            localStorage.setItem('masthead_title', mastheadTitle);
         }
         
         applyTheme();
+        applyMasthead();
         
         settingsDialog.close();
         showSuccess('Settings saved successfully!');
         
-        // Reload posts from GitHub if configured
         if (isGitHubConfigured()) {
-            initBlog();
+            initDiary();
         }
     });
 }
 
-// --- 4. Form & Submission Logic ---
+// --- NEW POST FORM ---
 
-fabBtn.addEventListener('click', () => { 
-    updateFormFields('text'); 
-    dialog.showModal(); 
+fabBtn.addEventListener('click', () => {
+    updateFormFields('recap');
+    dialog.showModal();
 });
 
 cancelBtn.addEventListener('click', () => {
@@ -535,27 +603,23 @@ cancelBtn.addEventListener('click', () => {
 postTypeSelect.addEventListener('change', (e) => updateFormFields(e.target.value));
 
 function updateFormFields(type) {
-    let html = '';
-    if (type === 'text') {
-        html = `<div class="input-group">
+    let html = `<div class="input-group">
+                    <label>Session Number</label>
+                    <input type="number" name="session" placeholder="1" min="1" required>
+                    <small>Which session is this for?</small>
+                </div>`;
+    
+    if (type === 'recap' || type === 'text') {
+        html += `<div class="input-group">
                     <label>Title</label>
                     <input type="text" name="title" required>
                 </div>
                 <div class="input-group">
                     <label>Content (Markdown supported)</label>
-                    <textarea name="content" rows="6" required></textarea>
-                </div>`;
-    } else if (type === 'image') {
-        html = `<div class="input-group">
-                    <label>Image URL</label>
-                    <input type="url" name="imageUrl" placeholder="https://example.com/image.jpg" required>
-                </div>
-                <div class="input-group">
-                    <label>Caption</label>
-                    <input type="text" name="caption" required>
+                    <textarea name="content" rows="8" required></textarea>
                 </div>`;
     } else if (type === 'quote') {
-        html = `<div class="input-group">
+        html += `<div class="input-group">
                     <label>Quote Text</label>
                     <textarea name="text" rows="4" required></textarea>
                 </div>
@@ -564,16 +628,14 @@ function updateFormFields(type) {
                     <input type="text" name="author" required>
                 </div>`;
     } else if (type === 'conversation') {
-        html = `<div class="input-group">
+        html += `<div class="input-group">
                     <label>Conversation Script</label>
                     <textarea name="rawConversation" rows="8" placeholder="Alice: Hello!
-Bob: Hi there!
-Alice: How are you?" required></textarea>
-                    <small style="color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 4px;">
-                        Format: Name: Message (one per line)
-                    </small>
+Bob: Hi there!" required></textarea>
+                    <small>Format: Name: Message (one per line)</small>
                 </div>`;
     }
+    
     fieldsContainer.innerHTML = html;
 }
 
@@ -581,102 +643,84 @@ postForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(postForm);
     const type = formData.get('type');
-    
-    // --- Validation ---
-    if (type === 'text') {
-        const title = formData.get('title')?.trim();
-        const content = formData.get('content')?.trim();
-        if (!title || !content) {
-            showError('Please fill in all fields');
-            return;
-        }
-    } else if (type === 'conversation') {
-        const rawConvo = formData.get('rawConversation')?.trim();
-        if (!rawConvo) {
-            showError('Please enter a conversation');
-            return;
-        }
-        const lines = rawConvo.split('\n').filter(l => l.trim());
-        const allValid = lines.every(line => line.includes(':'));
-        if (!allValid) {
-            showError('Each line must be in format: "Name: Message"');
-            return;
-        }
-    } else if (type === 'image') {
-        const imageUrl = formData.get('imageUrl')?.trim();
-        if (!imageUrl || !imageUrl.startsWith('http')) {
-            showError('Please enter a valid image URL');
-            return;
-        }
-    }
-    
+    const sessionNum = formData.get('session')?.trim();
     const date = formatDate();
     
-    // Create the New Block in Markdown format
-    let newBlock = `Type: ${type}\nDate: ${date}\n`;
-
-    if (type === 'text') {
-        newBlock += `Title: ${formData.get('title')}\n\n${formData.get('content')}`;
-    } else if (type === 'image') {
-        newBlock += `Caption: ${formData.get('caption')}\n\n${formData.get('imageUrl')}`;
-    } else if (type === 'quote') {
-        newBlock += `Author: ${formData.get('author')}\n\n${formData.get('text')}`;
-    } else if (type === 'conversation') {
-        newBlock += `\n${formData.get('rawConversation')}`;
+    if (!sessionNum) {
+        showError('Session number is required');
+        return;
     }
-
-    // Combine New Block + Existing Data (Newest on Top)
-    const updatedFileContent = rawMarkdownData.trim() 
-        ? newBlock + "\n---\n" + rawMarkdownData 
-        : newBlock;
-
+    
     dialog.close();
     postForm.reset();
-    
-    // Show uploading state
-    showLoading();
 
     try {
+        // Load existing session file
+        let existingContent = '';
+        try {
+            const result = await fetchSessionFile(sessionNum);
+            existingContent = result.content;
+        } catch (error) {
+            // New session file
+            console.log(`Creating new session file for session ${sessionNum}`);
+        }
+        
+        // Create new post block
+        let newBlock = `Type: ${type}\nDate: ${date}\n`;
+
+        if (type === 'recap' || type === 'text') {
+            newBlock += `Title: ${formData.get('title')}\n\n${formData.get('content')}`;
+        } else if (type === 'quote') {
+            newBlock += `Author: ${formData.get('author')}\n\n${formData.get('text')}`;
+        } else if (type === 'conversation') {
+            newBlock += `\n${formData.get('rawConversation')}`;
+        }
+
+        // Append to existing content
+        const updatedContent = existingContent.trim() 
+            ? newBlock + "\n---\n" + existingContent 
+            : newBlock;
+
         if (isGitHubConfigured()) {
-            // Commit to GitHub
-            await commitToGitHub(
-                updatedFileContent, 
-                `Add new ${type} post: ${date}`
-            );
-            
+            await commitSessionFile(sessionNum, updatedContent, `Add new ${type} to session ${sessionNum}`);
             showSuccess('Post published to GitHub! 🎉');
         } else {
-            // Fallback to download
-            const blob = new Blob([updatedFileContent], { type: 'text/markdown' });
+            // Download the session file
+            const blob = new Blob([updatedContent], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'posts.md';
+            link.download = `session-${sessionNum}.md`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            
-            showSuccess('Post created! Upload posts.md to publish.');
+            showSuccess(`Session ${sessionNum} file downloaded! Upload to sessions/ folder.`);
         }
         
-        // Refresh view
-        rawMarkdownData = updatedFileContent;
-        const posts = parseMarkdownFile(updatedFileContent);
-        renderPosts(posts);
+        // Reload sessions
+        await loadAllSessions();
+        renderSessionList();
+        displaySession(sessionNum);
         
     } catch (error) {
         console.error('Error publishing post:', error);
         showError(`Failed to publish: ${error.message}`);
-        
-        // Show the form again so user can retry
         dialog.showModal();
     }
 });
 
-// --- Keyboard Shortcuts ---
+// --- MOBILE SIDEBAR TOGGLE ---
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+}
+
+// --- KEYBOARD SHORTCUTS ---
+
 document.addEventListener('keydown', (e) => {
-    // Escape key closes dialogs
     if (e.key === 'Escape') {
         if (dialog.open) {
             dialog.close();
@@ -685,16 +729,17 @@ document.addEventListener('keydown', (e) => {
         if (settingsDialog && settingsDialog.open) {
             settingsDialog.close();
         }
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
     }
     
-    // Cmd/Ctrl + K opens new post dialog
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        updateFormFields('text');
+        updateFormFields('recap');
         dialog.showModal();
     }
     
-    // Cmd/Ctrl + , opens settings
     if ((e.metaKey || e.ctrlKey) && e.key === ',') {
         e.preventDefault();
         if (settingsBtn) {
@@ -703,10 +748,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// --- Initialize ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing blog...');
-    console.log('Settings button exists:', !!settingsBtn);
-    console.log('Settings dialog exists:', !!settingsDialog);
-    initBlog();
-});
+// --- INITIALIZE ---
+
+document.addEventListener('DOMContentLoaded', initDiary);
