@@ -6,6 +6,7 @@ const sidebar = document.getElementById('sidebar');
 
 let sessions = {};
 let currentSessionNumber = null;
+let portraitMap = {};
 
 // Initialize emoji parser
 const emoji = new EmojiConvertor();
@@ -17,6 +18,19 @@ emoji.allow_native = true;
 function convertEmojis(text) {
     if (!text) return text;
     return emoji.replace_colons(text);
+}
+
+function getPortraitUrl(speakerName) {
+    if (!speakerName) return 'portraits/defaultportrait.jpg';
+
+    // Check if we have a mapping for this speaker
+    const filename = portraitMap[speakerName];
+    if (filename) {
+        return `portraits/${filename}`;
+    }
+
+    // Fallback to default portrait
+    return 'portraits/defaultportrait.jpg';
 }
 
 function escapeHtml(text) {
@@ -76,6 +90,20 @@ function organizeSessionPosts(sessionNumber, posts) {
         date: posts.length > 0 ? posts[0].date : formatDate(),
         posts: posts
     };
+}
+
+// --- LOAD PORTRAITS ---
+
+async function loadPortraitConfig() {
+    try {
+        const response = await fetch('portraits.json');
+        if (response.ok) {
+            portraitMap = await response.json();
+        }
+    } catch (error) {
+        console.warn('Could not load portrait configuration:', error);
+        portraitMap = {};
+    }
 }
 
 // --- LOAD SESSIONS ---
@@ -209,8 +237,12 @@ function createPostCardHtml(post, isRecap) {
                 if (!speaker || !text) return '';
 
                 const side = (index % 2 === 0) ? 'left' : 'right';
+                const portraitUrl = getPortraitUrl(speaker);
                 return `<div class="chat-bubble-row ${side}">
-                            <span class="speaker-name">${convertEmojis(escapeHtml(speaker))}</span>
+                            <span class="speaker-name">
+                                <img src="${portraitUrl}" alt="${escapeHtml(speaker)}" class="speaker-portrait">
+                                ${convertEmojis(escapeHtml(speaker))}
+                            </span>
                             <div class="chat-bubble ${side}">${convertEmojis(escapeHtml(text))}</div>
                         </div>`;
             }).filter(html => html).join('');
@@ -224,11 +256,16 @@ function createPostCardHtml(post, isRecap) {
 
         case 'quote':
             extraClass += ' quote-card';
+            const authorName = post.author || 'Unknown';
+            const authorPortraitUrl = getPortraitUrl(authorName);
             contentHtml = `
                 <div class="card-padding">
                     <span class="post-type-label">Quote</span>
                     <div class="quote-text">"${convertEmojis(escapeHtml(post.bodyRaw))}"</div>
-                    <div class="quote-author">— ${convertEmojis(escapeHtml(post.author || 'Unknown'))}</div>
+                    <div class="quote-author">
+                        <img src="${authorPortraitUrl}" alt="${escapeHtml(authorName)}" class="author-portrait">
+                        — ${convertEmojis(escapeHtml(authorName))}
+                    </div>
                 </div>`;
             break;
     }
@@ -240,6 +277,9 @@ function createPostCardHtml(post, isRecap) {
 
 async function initDiary() {
     sessionList.innerHTML = '<div class="loading-sessions">Loading sessions...</div>';
+
+    // Load portrait configuration first
+    await loadPortraitConfig();
 
     await loadAllSessions();
     renderSessionList();

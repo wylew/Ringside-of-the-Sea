@@ -1,5 +1,5 @@
 Type: recap
-Date: Dec 22, 2024
+Date: Jan 03, 2026
 Title: The Shattered Isles
 
 Session 2 took us into dangerous waters as we pursued the Tide Callers to their base in the Shattered Isles.
@@ -20,7 +20,7 @@ Session 2 took us into dangerous waters as we pursued the Tide Callers to their 
 We discovered the Tide Callers aren't just pirates—they're trying to awaken an ancient sea deity. And Kaelen might be the key to stopping them... or helping them.
 ---
 Type: conversation
-Date: Dec 22, 2024
+Date: Jan 03, 2026
 
 Kaelen: Did anyone else notice that shopkeeper was acting strange?
 Mira: Very strange. He kept looking at the door like he was expecting someone.
@@ -28,7 +28,7 @@ Theron: Or afraid someone would walk in...
 Mira: We should investigate after we rest.
 ---
 Type: conversation
-Date: Dec 22, 2024
+Date: Jan 03, 2026
 
 Theron: We need to talk about what happened back there with the water.
 Mira: What's there to talk about? We survived.
@@ -40,7 +40,7 @@ Theron: Then what was it like?
 Kaelen: It felt like... like coming home.
 ---
 Type: quote
-Date: Dec 22, 2024
-Author: Mira the Rogue
+Date: Jan 03, 2026
+Author: Mulduck
 
-Sometimes the best plan is the one you make up as you go. Calculated risks, my friends. Calculated risks.
+That bird wasn't alive so TECHNICALLY I didn't kill it.
