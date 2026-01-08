@@ -1,0 +1,46 @@
+Type: recap
+Date: Dec 22, 2024
+Title: The Shattered Isles
+
+Session 2 took us into dangerous waters as we pursued the Tide Callers to their base in the Shattered Isles.
+
+## Key Events
+
+- **The Sea Chase**: An intense ship combat where Mira took the helm and pulled off impossible maneuvers
+- **The Kraken Attack**: A young kraken, apparently allied with the Tide Callers, ambushed us mid-journey
+- **Kaelen's Revelation**: During the kraken fight, Kaelen displayed mysterious water-controlling abilities they didn't know they had
+
+## NPCs Introduced
+
+- **Captain Seraphina Vale**: A rival pirate captain who offered to help us (for a price)
+- **The Kraken**: Not killed, but driven away. It will remember us.
+
+## Cliffhanger
+
+We discovered the Tide Callers aren't just pirates—they're trying to awaken an ancient sea deity. And Kaelen might be the key to stopping them... or helping them.
+---
+Type: conversation
+Date: Dec 22, 2024
+
+Kaelen: Did anyone else notice that shopkeeper was acting strange?
+Mira: Very strange. He kept looking at the door like he was expecting someone.
+Theron: Or afraid someone would walk in...
+Mira: We should investigate after we rest.
+---
+Type: conversation
+Date: Dec 22, 2024
+
+Theron: We need to talk about what happened back there with the water.
+Mira: What's there to talk about? We survived.
+Theron: Barely! And only because Kaelen did... whatever that was.
+Kaelen: I told you, I don't know what happened. One moment I was drowning, the next...
+Mira: The next, the water was obeying you like a trained dog.
+Kaelen: It wasn't like that.
+Theron: Then what was it like?
+Kaelen: It felt like... like coming home.
+---
+Type: quote
+Date: Dec 22, 2024
+Author: Mira the Rogue
+
+Sometimes the best plan is the one you make up as you go. Calculated risks, my friends. Calculated risks.
