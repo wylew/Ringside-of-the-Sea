@@ -7,13 +7,13 @@
 }
 @font-face {
     font-family: 'Pixel';
-    src: url('DUNGRG__.TTF') format('truetype');
+    src: url('FantasyDraft.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 @font-face {
     font-family: 'Depths';
-    src: url('DUNGRG__.TTF') format('truetype');
+    src: url('Dungeon_Depths.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
@@ -67,13 +67,13 @@
     --sidebar-width: 320px;
     
     /* Font Variables */
-    --font-primary: 'Dungeon', serif;
-    --font-masthead: 'Dungeon', serif;
-    --font-sidebar: 'Dungeon', serif;
-    --font-post-title: 'Dungeon', serif;
-    --font-post-body: 'Dungeon', serif;
-    --font-post-label: 'Dungeon', serif;
-    --font-conversation: 'Dungeon', serif;
+    --font-primary: 'Pixel', serif;
+    --font-masthead: 'Depths', serif;
+    --font-sidebar: 'Pixel', serif;
+    --font-post-title: 'Pixel', serif;
+    --font-post-body: 'Pixel', serif;
+    --font-post-label: 'Pixel', serif;
+    --font-conversation: 'Pixel', serif;
     --font-quote: 'Dungeon', serif;
 }
 
