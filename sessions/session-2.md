@@ -35,6 +35,12 @@ To: Traitor Joe's
 Date: Jan 03, 2026
 We set sail for Traitor Joe's to learn of our bounties.
 ---
+type: location
+Name: Traitor Joe's
+Date: Jan 03, 2026
+
+A small island safe harbor for pirates. Haggling is REQUIRED.
+---
 Type: quote
 Date: Jan 03, 2026
 Author: Mulduck
