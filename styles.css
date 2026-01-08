@@ -25,8 +25,8 @@
 :root {
     /* Dark Mode Theme - Blues/Greys/Blacks */
     #61320e --md-sys-color-primary: #d0bcff;
-    --md-sys-color-on-primary: #61320E;
-    --md-sys-color-primary-container: #C7661C;
+    --md-sys-color-on-primary: #0e4961;
+    --md-sys-color-primary-container: #5e7f8f;
     --md-sys-color-on-primary-container: #D3E4FD;
 
     --md-sys-color-secondary: #BAC8DB;
@@ -52,7 +52,7 @@
     --md-sys-color-on-surface-variant: #C1C7CE;
 
     --md-sys-color-outline: #8B9198;
-    --md-sys-color-outline-variant: #41484D;
+    --md-sys-color-outline-variant: #80685e;
 
     --md-sys-color-error: #FFB4AB;
     --md-sys-color-on-error: #690005;
