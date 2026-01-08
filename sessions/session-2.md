@@ -33,6 +33,7 @@ type: travel
 from: New Haven
 To: Traitor Joe's
 Date: Jan 03, 2026
+We set sail for Traitor Joe's to learn of our bounties.
 ---
 Type: quote
 Date: Jan 03, 2026
