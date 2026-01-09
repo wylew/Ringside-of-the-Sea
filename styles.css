@@ -1007,7 +1007,7 @@ body {
 @media (max-width: 768px) {
     .masthead {
         height: auto;
-        min-height: 400px;
+        min-height: 200px;
         padding: 30px 15px 30px;
     }
 
