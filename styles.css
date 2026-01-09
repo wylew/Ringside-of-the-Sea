@@ -1092,4 +1092,47 @@ body {
 
 button:focus-visible {
     outline-offset: 4px;
+}/* Location Characters List */
+.location-characters {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    padding-top: 16px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.location-character-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 60px;
+}
+
+.location-character-portrait {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--md-sys-color-tertiary);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.location-character-item:hover .location-character-portrait {
+    transform: scale(1.1);
+}
+
+.location-character-name {
+    font-size: 10px;
+    color: var(--md-sys-color-on-surface-variant);
+    text-align: center;
+    font-family: var(--font-post-label);
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
