@@ -33,11 +33,13 @@ type: travel
 from: New Haven
 To: Traitor Joe's
 Date: Jan 03, 2026
+characters: Luigi, Clovis, Mulduck, Quulaihr
 We set sail for Traitor Joe's to learn of our bounties.
 ---
 type: location
 Name: Traitor Joe's
 Date: Jan 03, 2026
+characters: Luigi, Clovis, Mulduck, Quulaihr
 
 A small island safe harbor for pirates. Haggling is REQUIRED.
 ---
