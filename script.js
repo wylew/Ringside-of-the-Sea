@@ -298,13 +298,13 @@ function createPostCardHtml(post, isRecap) {
             const charPortraitUrl = getPortraitUrl(charName);
             contentHtml = `
                 <div class="card-padding">
+                    <span class="post-type-label">Character</span>
                     <div class="character-intro-card">
                         <div class="character-portrait-column">
                             <img src="${charPortraitUrl}" alt="${escapeHtml(charName)}" class="character-portrait">
                             <span class="char-intro-name">${convertEmojis(escapeHtml(charName))}</span>
                         </div>
                         <div class="character-description-column">
-                            <span class="post-type-label">Character</span>
                             <div class="text-body">${bodyHtml}</div>
                         </div>
                     </div>
