@@ -7,7 +7,7 @@ Session 2 took us to the high seas on The Wedding Downry to the isle of Traitor 
 ## :star2: Key Details
 
 - **:face_with_spiral_eyes: Dream States**: We all awaken on the ship in various states of dreamy confusion
-- **:anchor: The Wedding Downry**: The ship we are aboard
+- **:anchor: The Wedding Dowry**: The ship we are aboard
 - **:pirate_flag: Traitor Joe's**: An island safe harbor for pirates. Haggling is REQUIRED.
 - **:crab: The Rusty Crab**: A divey pirate bar.
 - **:tropical_drink: Salt & Aire**: the fancy schmancy bar.
@@ -28,6 +28,20 @@ Session 2 took us to the high seas on The Wedding Downry to the isle of Traitor 
 ## :open_book: The Adventure
 
 We discovered the Tide Callers aren't just pirates—they're trying to awaken an ancient sea deity. And Kaelen might be the key to stopping them... or helping them.
+
+---
+type: location
+Name: The Wedding Dowry
+Date: Jan 03, 2026
+characters: Luigi, Clovis, Mulduck, Quulaihr
+
+We are all aboard the ship in various states of confusion and dreaming as the session begins...
+---
+Type: text
+Title: Mulduck Awakens
+We find ourselves at a wedding where **Mulduck** is the officiant. Mulduck looks around only to find that the bride, groom, and those in attandance all have his face...and then all are hold his same orb.
+
+Mulduck awakens on the deck of the Dowry to find his orb has changed color, and now has some ability to control time.
 ---
 type: travel
 from: New Haven
