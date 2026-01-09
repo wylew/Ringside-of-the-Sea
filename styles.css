@@ -24,7 +24,7 @@
 
 :root {
     /* Dark Mode Theme - Blues/Greys/Blacks */
-    #61320e --md-sys-color-primary: #d0bcff;
+    --md-sys-color-primary: #d0bcff;
     --md-sys-color-on-primary: #0e4961;
     --md-sys-color-primary-container: #5e7f8f;
     --md-sys-color-on-primary-container: #D3E4FD;
@@ -1023,13 +1023,13 @@ body {
     }
 
     .masthead-portrait {
-        width: 100px;
-        height: 100px;
+        width: 60px;
+        height: 60px;
         border: 2px solid var(--md-sys-color-tertiary);
     }
 
     .portrait-name {
-        font-size: 32px;
+        display: none;
     }
 
     .mobile-menu-btn {
