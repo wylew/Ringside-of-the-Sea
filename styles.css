@@ -697,6 +697,7 @@ body {
     font-family: var(--font-quote);
     position: relative;
     padding-left: 24px;
+    text-align: center;
 }
 
 .quote-text::before {
@@ -723,6 +724,7 @@ body {
     font-family: var(--font-quote);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
 }
 
@@ -739,7 +741,7 @@ body {
 .character-intro-card {
     display: flex;
     gap: 40px;
-    align-items: flex-start;
+    align-items: stretch;
 }
 
 .character-portrait-column {
@@ -772,6 +774,10 @@ body {
 .character-description-column {
     flex: 1;
     font-family: var(--font-primary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
 }
 
 .character-description-column .text-body {
@@ -782,7 +788,7 @@ body {
 .location-intro-card {
     display: flex;
     gap: 40px;
-    align-items: flex-start;
+    align-items: stretch;
 }
 
 .location-icon-column {
@@ -813,6 +819,9 @@ body {
 .location-description-column {
     flex: 1;
     font-family: var(--font-primary);
+    display: flex;
+    flex-direction: column;
+    text-align: center;
 }
 
 .location-description-column .text-body {
@@ -885,6 +894,10 @@ body {
     transform: translateY(-50%);
     animation: ship-bob 3s ease-in-out infinite;
     text-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.travel-card .text-body {
+    text-align: center;
 }
 
 @keyframes ship-bob {
@@ -1092,13 +1105,16 @@ body {
 
 button:focus-visible {
     outline-offset: 4px;
-}/* Location Characters List */
+}
+
+/* Location Characters List */
 .location-characters {
     display: flex;
     justify-content: center;
     align-items: flex-start;
     gap: 16px;
-    margin-top: 24px;
+    gap: 16px;
+    margin-top: auto;
     flex-wrap: wrap;
     padding-top: 16px;
     border-top: 1px solid var(--md-sys-color-outline-variant);
