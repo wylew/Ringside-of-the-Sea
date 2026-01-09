@@ -105,7 +105,7 @@ body {
 .masthead {
     position: relative;
     width: 100%;
-    min-height: 380px;
+    min-height: 200px;
     background-image: url('masthead.jpg');
     background-size: cover;
     background-position: center;
@@ -114,7 +114,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     overflow: visible;
-    padding: 40px 20px 40px;
+    padding: 30px 20px 30px;
 }
 
 .masthead-overlay {
@@ -132,7 +132,7 @@ body {
     font-family: var(--font-masthead);
     font-size: 36px;
     color: var(--md-sys-color-on-primary-container);
-    margin: 0 0 40px 0;
+    margin: 0 0 20px 0;
     text-align: center;
     text-shadow: 0px 4px 12px rgba(0, 0, 0, 0.8);
     letter-spacing: 3px;
@@ -158,8 +158,8 @@ body {
 }
 
 .masthead-portrait {
-    width: 150px;
-    height: 150px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--md-sys-color-tertiary);
