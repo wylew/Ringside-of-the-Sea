@@ -140,7 +140,7 @@ Name: Who's Askin?
 emoji: 🤫
 Date: Jan 03, 2026
 characters: Luigi, Clovis, Mulduck, Quulaihr
-We regroup momentarily at Who's Askin? before breaking to finish shopping needs an investigation.
+We regroup momentarily at Who's Askin? before breaking to finish shopping needs and investigation.
 ---
 type: location
 Name: Well Gotten Gains
